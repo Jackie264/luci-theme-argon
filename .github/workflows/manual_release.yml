@@ -68,7 +68,7 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
           tag_name: ${{steps.check_version.outputs.latest_version}}
-          name: Build ${{ steps.check_version.outputs.latest_version }}
+          name: Build-${{ steps.check_version.outputs.latest_version }}
 
   job_build_argon:
     name: Build Argon (master)
