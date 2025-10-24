@@ -61,7 +61,7 @@ jobs:
           echo "latest_version: ${latest_version}"
           echo "latest_release: ${latest_release}"
           echo "has_update: ${has_update}"
-          COMBINED_VERSION="${PKG_VERSION}-${PKG_RELEASE}"
+          COMBINED_VERSION="${latest_version}-${latest_release}"
           echo "📦 COMBINED Version: $COMBINED_VERSION"
           echo "combined_version=$COMBINED_VERSION" >> "$GITHUB_OUTPUT"
 
