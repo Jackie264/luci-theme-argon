@@ -70,8 +70,8 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
-          name: For openwrt official Snapshots LuCI master
-          tag_name: ${{steps.check_version.outputs.latest_version}}
+          tag_name: v${{ steps.combined_version.outputs.version }}
+          name: Build v${{ steps.combined_version.outputs.version }}
 
   job_build_argon:
     name: Build Argon (master)
