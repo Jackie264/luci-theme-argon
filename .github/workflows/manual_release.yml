@@ -12,6 +12,8 @@
 #
 
 name: "Auto compile with OpenWrt SDK"
+permissions:
+  contents: read
 on:
   repository_dispatch:
   workflow_dispatch:
@@ -33,6 +35,8 @@ jobs:
     if: github.repository == ${{ github.repository }}
     name: Check Version
     runs-on: ubuntu-latest
+    permissions:
+      contents: write
     outputs:
       argon_version: ${{ steps.check_version.outputs.latest_version }}
       has_update: ${{ steps.check_version.outputs.has_update }}
