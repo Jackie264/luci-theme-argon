@@ -56,6 +56,9 @@ jobs:
           echo "latest_version: ${latest_version}"
           echo "latest_release: ${latest_release}"
           echo "has_update: ${has_update}"
+          COMBINED_VERSION="${PKG_VERSION}-${PKG_RELEASE}"
+          echo "📦 COMBINED Version: $COMBINED_VERSION"
+          echo "combined_version=$COMBINED_VERSION" >> "$GITHUB_OUTPUT"
 
       - name: Generate new tag & release
         if: steps.check_version.outputs.has_update == 'true'
@@ -85,12 +88,12 @@ jobs:
         uses: actions/cache@v3
         with:
           path: sdk
-          key: openwrt-sdk-snapshot-x86-64
+          key: openwrt-sdk-24.10.3-x86-64
 
       - name: Initialization environment
         if: steps.cache-sdk.outputs.cache-hit != 'true'
         env:
-          url_sdk: https://archive.openwrt.org/releases/24.10.0/targets/x86/64/openwrt-sdk-24.10.0-x86-64_gcc-13.3.0_musl.Linux-x86_64.tar.zst
+          url_sdk: https://downloads.openwrt.org/releases/24.10.3/targets/x86/64/openwrt-sdk-24.10.3-x86-64_gcc-13.3.0_musl.Linux-x86_64.tar.zst
         run: |
           wget ${{ env.url_sdk }}
           file_name=$(echo ${{env.url_sdk}} | awk -F/ '{print $NF}')
@@ -130,6 +133,12 @@ jobs:
           echo "status=success" >> $GITHUB_OUTPUT
           echo "FIRMWARE=$PWD" >> $GITHUB_ENV
 
+      - name: Collect build artifacts
+        run: |
+          mkdir -p "$GITHUB_WORKSPACE/out"
+          find base -type f -name "luci-theme*.ipk" -print -exec cp -f {} "$GITHUB_WORKSPACE/out/" \;
+          cd "$GITHUB_WORKSPACE/out" && sha256sum *.ipk > SHA256SUMS.txt || true && ls -l
+
       - name: Upload Argon (master) ipks to release
         uses: softprops/action-gh-release@v1
         if: steps.compile.outputs.status == 'success'
@@ -138,3 +147,30 @@ jobs:
         with:
           tag_name: ${{needs.job_check.outputs.argon_version}}
           files: ${{ env.FIRMWARE }}/base/luci-theme*.*
+
+      - name: Checkout custom-packages repo
+        uses: actions/checkout@v4
+        with:
+          repository: OneNAS-space/custom-packages
+          token: ${{ secrets.CUSTOM_PACKAGES_TOKEN }}
+          path: custom-packages
+
+      - name: Update luci artifacts
+        run: |
+          mkdir -p custom-packages/luci
+          
+          find ./out -type f -name "*.ipk" | while read -r f; do
+            base=$(basename "$f")
+            pkgname=$(echo "$base" | sed -E 's/^([a-zA-Z0-9\-_]+)_.*$/\1/')
+            echo "Cleaning old versions of $pkgname"
+            rm -f custom-packages/luci/${pkgname}_*.ipk
+            cp "$f" custom-packages/luci/
+          done
+          ls -la custom-packages/luci/
+          echo "PKG_NAME=${{ github.event.repository.name }}" >> "$GITHUB_ENV"
+          cd custom-packages
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add luci/
+          git commit -m "Update to - v${{ steps.check_version.outputs.combined_version }}" || echo "No changes"
+          git push
