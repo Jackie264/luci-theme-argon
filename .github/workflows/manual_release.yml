@@ -71,8 +71,8 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
-          tag_name: v${{ steps.check_version.outputs.combined_version }}
-          name: Build v${{ steps.check_version.outputs.combined_version }}
+          tag_name: ${{ steps.check_version.outputs.combined_version }}
+          name: Build ${{ steps.check_version.outputs.combined_version }}
 
   job_build_argon:
     name: Build Argon (master)
