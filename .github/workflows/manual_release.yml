@@ -91,12 +91,12 @@ jobs:
         uses: actions/cache@v4
         with:
           path: sdk
-          key: openwrt-sdk-24.10.3-x86-64
+          key: openwrt-sdk-24.10.4-x86-64
 
       - name: Initialization environment
         if: steps.cache-sdk.outputs.cache-hit != 'true'
         env:
-          url_sdk: https://downloads.openwrt.org/releases/24.10.3/targets/x86/64/openwrt-sdk-24.10.3-x86-64_gcc-13.3.0_musl.Linux-x86_64.tar.zst
+          url_sdk: https://downloads.openwrt.org/releases/24.10.4/targets/x86/64/openwrt-sdk-24.10.4-x86-64_gcc-13.3.0_musl.Linux-x86_64.tar.zst
         run: |
           wget ${{ env.url_sdk }}
           file_name=$(echo ${{env.url_sdk}} | awk -F/ '{print $NF}')
